@@ -1,0 +1,24 @@
+name: ScavDuels
+main: nz.co.lolnet.james137137.ScavDuels.ScavDuels
+version: 0.01
+authors: [James Anderson]
+commands:
+  Duel:
+    description: Main Command for ScavDuels
+    usage: /<command>
+  DuelAdmin:
+    description: Admin command for ScavDuels
+    usage: /<command>
+  
+permissions:
+  ScavDuels.*:
+    description: Gives access to all ScavDuels commands
+    children:
+      ScavDuels.command.Duel: true
+      ScavDuels.command.DuelAdmin: true
+  ScavDuels.command.Duel:
+    description: Allows player to /Duel
+    default: true
+  ScavDuels.command.DuelAdmin:
+    description: Allows player to /DuelAdmin
+    default: op

@@ -1,0 +1,5 @@
+CountDownTime: 10
+KillLeaver: true
+MaxWaitTimeToAccept: 60
+maxTimeForWinerToLoot: 15
+HealPlayerOnForceStop: true
