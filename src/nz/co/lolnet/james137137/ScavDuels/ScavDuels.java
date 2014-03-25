@@ -37,10 +37,11 @@ public class ScavDuels extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        
+        plugin = this;
         Config config = new Config(this);
         scavDuelsPlayer = new HashMap<>();
         ArenaList = Arena.getAllArenas();
+        getServer().getPluginManager().registerEvents(new ScavDuelsListener(this), this);
 
     }
 
@@ -122,7 +123,7 @@ public class ScavDuels extends JavaPlugin {
                                         }
                                     }
                                 } else {
-                                    sender.sendMessage("invite time to accpet has passed");
+                                    sender.sendMessage("Invite time to accept has passed");
                                 }
 
                             }
@@ -138,6 +139,10 @@ public class ScavDuels extends JavaPlugin {
                                 dPlayer2 = new ScavDuelsPlayer(player);
                                 sender.sendMessage("No are not in a duel");
                                 scavDuelsPlayer.put(player.getName(), dPlayer2);
+                                return true;
+                            }
+                            if (dPlayer2.canLeaveAfterWinning) {
+                                dPlayer2.TeleportBack();
                                 return true;
                             }
                             if (!dPlayer2.isDueling) {
@@ -200,6 +205,10 @@ public class ScavDuels extends JavaPlugin {
                                     dPlayer2 = new ScavDuelsPlayer(player2);
                                     scavDuelsPlayer.put(player2.getName(), dPlayer2);
                                 }
+                                if (dPlayer2.isDueling) {
+                                    sender.sendMessage("you are already in a duel. Type /duel Leave to leave");
+                                    return true;
+                                }
                                 dPlayer2.inviteName = player1.getName();
                                 dPlayer2.inviteTime = System.currentTimeMillis();
                                 ScavDuelsPlayer dPlayer1 = scavDuelsPlayer.get(player1.getName());
@@ -208,10 +217,15 @@ public class ScavDuels extends JavaPlugin {
                                     dPlayer1 = new ScavDuelsPlayer(player1);
                                     scavDuelsPlayer.put(player1.getName(), dPlayer1);
                                 }
+                                if (dPlayer1.isDueling) {
+                                    sender.sendMessage("That player is already in a duel.");
+                                    return true;
+                                }
                                 dPlayer1.ArenaName = args[1];
                                 System.out.println(dPlayer1.ArenaName);
                                 dPlayer1.invitedName = player1.getName();
                                 dPlayer1.invitedTime = System.currentTimeMillis();
+                                dPlayer1.sendMessage("request sent.");
                                 dPlayer2.sendMessage("You have been invited to duel " + dPlayer1.getPlayer().getName() + " go /duel accept " + dPlayer1.getPlayer().getName());
 
                             }
@@ -220,7 +234,7 @@ public class ScavDuels extends JavaPlugin {
                         }
                     }
                 } else {
-                    sender.sendMessage("Args missing. type /arena help");
+                    sender.sendMessage("Args missing. type /duel help");
                 }
                 return true;
             } else {
@@ -255,8 +269,7 @@ public class ScavDuels extends JavaPlugin {
                             sender.sendMessage("Arena Already exist.");
                         }
 
-                    }
-                    else if (args[0].equalsIgnoreCase("setpos")) {
+                    } else if (args[0].equalsIgnoreCase("setpos")) {
                         if (args.length < 3) {
                             sender.sendMessage("args Missing");
                         }
@@ -282,7 +295,7 @@ public class ScavDuels extends JavaPlugin {
                             }
                         }
                     } else if (args[0].equalsIgnoreCase("stopall")) {
-                        for (Arena arena :  ArenaList) {
+                        for (Arena arena : ArenaList) {
                             arena.StopArena();
                         }
                     }
@@ -297,7 +310,7 @@ public class ScavDuels extends JavaPlugin {
 
         return false;
     }
-    
+
     public static Arena LoadFromDisk(String name) {
         File arenaFileLocationPath = Config.getArenaFileLocationPath();
         File arenadir = new File(arenaFileLocationPath, "arenas");

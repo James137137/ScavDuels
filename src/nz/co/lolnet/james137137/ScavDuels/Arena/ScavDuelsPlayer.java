@@ -50,7 +50,7 @@ public class ScavDuelsPlayer {
 
     public void EndDuelOnLeave(ScavDuelsPlayer leaver) {
         this.isDueling = false;
-        if (Config.KillLeaver())
+        if (Config.KillLeaver() && leaver.getPlayer().getHealth() > 0.0)
         {
             leaver.getPlayer().setHealth(0.0);
         }
@@ -74,6 +74,7 @@ public class ScavDuelsPlayer {
         // added teleport 2 times to prevent back.
         this.getPlayer().teleport(lastLocation);
         this.getPlayer().teleport(lastLocation);
+        canLeaveAfterWinning = false;
     }
 
     public void sendMessage(String message) {
@@ -84,8 +85,20 @@ public class ScavDuelsPlayer {
         getPlayer().teleport(spawnLocation);
     }
 
-    private void Runnable() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void EndDuelOnDeath(ScavDuelsPlayer Losser) {
+        this.isDueling = false;
+        if (!this.player.equals(Losser.player))
+        {
+            player.sendMessage("You have " + Config.maxTimeForWinerToLoot + " Secounds to collect the loot. Type /duel leave when finished");
+            canLeaveAfterWinning = true;
+            Bukkit.getServer().getScheduler().runTaskLater(ScavDuels.getMyPlugin(), new Runnable() {
+
+            @Override
+            public void run() {
+                TeleportBack();
+            }
+        }, Config.maxTimeForWinerToLoot * 20);
+        }
     }
 
     

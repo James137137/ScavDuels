@@ -14,6 +14,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import nz.co.lolnet.james137137.ScavDuels.Config;
 import nz.co.lolnet.james137137.ScavDuels.ScavDuels;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
@@ -81,11 +82,19 @@ public class Arena {
         }
 
     }
+    
+   
 
     public void StopArenaOnLeave(ScavDuelsPlayer leaver) {
         this.isRunning = false;
         player1.EndDuelOnLeave(leaver);
         player2.EndDuelOnLeave(leaver);
+    }
+    
+     public void StopArenaOnDeath(ScavDuelsPlayer losser) {
+        this.isRunning = false;
+        player1.EndDuelOnDeath(losser);
+        player2.EndDuelOnDeath(losser);
     }
 
     public ScavDuelsPlayer getPlayer1() {
@@ -160,6 +169,14 @@ public class Arena {
 
     public void setuptDuel(ScavDuelsPlayer dPlayer1, ScavDuelsPlayer dPlayer2) {
         this.isRunning = true;
+        dPlayer1.canLeaveAfterWinning = false;
+        dPlayer2.canLeaveAfterWinning = false;
+        dPlayer1.isDueling = true;
+        dPlayer2.isDueling = true;
+        dPlayer1.ArenaName = this.name;
+        dPlayer2.ArenaName = this.name;
+        dPlayer1.getPlayer().setGameMode(GameMode.SURVIVAL);
+        dPlayer2.getPlayer().setGameMode(GameMode.SURVIVAL);
         dPlayer1.sendMessage("Starting Game");
         dPlayer2.sendMessage("Starting Game");
         this.player1 = dPlayer1;
@@ -177,6 +194,8 @@ public class Arena {
         player2.canMove = false;
         new Arena.ThreadCountDown(player1, player2);
     }
+
+    
 
     private static class ThreadCountDown implements Runnable {
 

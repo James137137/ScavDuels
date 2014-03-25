@@ -22,3 +22,6 @@ permissions:
   ScavDuels.command.DuelAdmin:
     description: Allows player to /DuelAdmin
     default: op
+  ScavDuels.duel.bypassCommands:
+    description: Allows player use command in a duel
+    default: false
