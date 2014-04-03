@@ -21,10 +21,16 @@ public class Config {
     private static int CountDownTime;
     private static boolean KillLeaver;
     public static long maxTimeForWinerToLoot;
+    public static long maxMatchTime;
 
     public static File getArenaFileLocationPath() {
         return myPluginFolder;
     }
+
+    public static long getMaxMatchTime() {
+        return maxMatchTime;
+    }
+    
 
     static long getMaxWaitTimeToAccept() {
         return MaxWaitTimeToAccept;
@@ -49,6 +55,7 @@ public class Config {
         CountDownTime = config.getInt("CountDownTime");
         KillLeaver = config.getBoolean("KillLeaver");
         maxTimeForWinerToLoot = config.getLong("maxTimeForWinerToLoot");
+        maxMatchTime = config.getLong("maxMatchTime");
     }
     
 }

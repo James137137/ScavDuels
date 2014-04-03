@@ -29,6 +29,8 @@ public class ScavDuelsPlayer {
     public long invitedTime;
     public String ArenaName;
     public boolean canLeaveAfterWinning = false;
+    public boolean MatchHasStarted;
+    long currentMatchID;
 
     public ScavDuelsPlayer(Player player) {
         this.player = player;
@@ -43,7 +45,6 @@ public class ScavDuelsPlayer {
         this.TeleportBack();
         getPlayer().sendMessage(ChatColor.GOLD + "The duel has been stoped by the server or an Admin");
         if (Config.HealPlayerOnForceStop) {
-
             getPlayer().setHealth(getPlayer().getMaxHealth());
         }
     }
@@ -99,6 +100,14 @@ public class ScavDuelsPlayer {
             }
         }, Config.maxTimeForWinerToLoot * 20);
         }
+    }
+
+    void endMatchOnMaxTimeReached() {
+        this.isDueling = false;
+        player.sendMessage("Arena has ended due to that maximum time the duel can be has reached.");
+        TeleportBack();
+        player.setHealth(player.getMaxHealth());
+        
     }
 
     

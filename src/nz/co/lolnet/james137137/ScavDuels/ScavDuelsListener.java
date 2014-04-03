@@ -8,6 +8,7 @@ package nz.co.lolnet.james137137.ScavDuels;
 import nz.co.lolnet.james137137.ScavDuels.Arena.Arena;
 import nz.co.lolnet.james137137.ScavDuels.Arena.ScavDuelsPlayer;
 import static nz.co.lolnet.james137137.ScavDuels.ScavDuels.ArenaList;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -16,6 +17,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
 /**
  *
@@ -40,7 +42,7 @@ class ScavDuelsListener implements Listener {
         ScavDuelsPlayer dPlayer2 = ScavDuels.scavDuelsPlayer.get(player.getName());
         if (dPlayer2 != null && dPlayer2.isDueling) {
             String[] split = event.getMessage().split(" ");
-            if (!split[0].equalsIgnoreCase("/duel") && !event.getPlayer().hasPermission("ScavDuels.duel.bypassCommands"))
+            if (!split[0].equalsIgnoreCase("/duel") && !split[0].equalsIgnoreCase("/dueladmin") && !event.getPlayer().hasPermission("ScavDuels.duel.bypassCommands"))
             {
                 event.getPlayer().sendMessage("You in a duel. Type /duel Leave to leave");
                 event.setCancelled(true);
@@ -106,5 +108,19 @@ class ScavDuelsListener implements Listener {
         }
 
     }
+    
+    @EventHandler
+    protected void onPlayerDammage(EntityDamageByEntityEvent event) {
+        Entity entity = event.getEntity();
+        if (entity instanceof Player) {
+            Player player = (Player) entity;
+            ScavDuelsPlayer dPlayer2 = ScavDuels.scavDuelsPlayer.get(player.getName());
+            if (dPlayer2 != null && dPlayer2.isDueling && !dPlayer2.MatchHasStarted) {
+                event.setCancelled(true);
+            }
+        }
+
+    }
+    
 
 }

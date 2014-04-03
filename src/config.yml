@@ -2,4 +2,5 @@ CountDownTime: 10
 KillLeaver: true
 MaxWaitTimeToAccept: 60
 maxTimeForWinerToLoot: 15
+maxMatchTime: 30
 HealPlayerOnForceStop: true

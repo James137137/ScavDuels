@@ -30,6 +30,7 @@ public class ScavDuels extends JavaPlugin {
     static List<Arena> ArenaList;
     public static HashMap<String, ScavDuelsPlayer> scavDuelsPlayer;
     private static ScavDuels plugin;
+    public static long nextMatchID;
 
     public static Plugin getMyPlugin() {
         return plugin;
@@ -37,6 +38,7 @@ public class ScavDuels extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        nextMatchID = 1;
         plugin = this;
         Config config = new Config(this);
         scavDuelsPlayer = new HashMap<>();
@@ -47,6 +49,9 @@ public class ScavDuels extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        for (Arena arena : ArenaList) {
+            arena.StopArena();
+        }
     }
 
     @Override
@@ -57,8 +62,13 @@ public class ScavDuels extends JavaPlugin {
 
                 if (args.length >= 1) {
                     if (args[0].equalsIgnoreCase("help")) {
-                        sender.sendMessage("not yet Supported");
-                    } else if (args[0].equalsIgnoreCase("status")) {
+                        sender.sendMessage(ChatColor.GOLD + "Commands");
+                        sender.sendMessage("/duel status or /deul list - Displays all Arenas and if they are avilable.");
+                        sender.sendMessage("/duel playerName ArenaName - send an invite to duel a player");
+                        sender.sendMessage("/duel Accept PlayerName - Accept an Invite to duel a player");
+                        sender.sendMessage("/deul leave - Leave an arena during or after a duel");
+                        sender.sendMessage("(note: that while dueling (other player is alive) leaving will be counted as a loss, and possibly death)");
+                    } else if (args[0].equalsIgnoreCase("status") || args[0].equalsIgnoreCase("list")) {
                         if (ArenaList.isEmpty()) {
                             sender.sendMessage("There are no Arenas made yet");
                         } else {
@@ -66,19 +76,19 @@ public class ScavDuels extends JavaPlugin {
                                 if (arena.isRunning) {
                                     sender.sendMessage(ChatColor.GOLD + arena.name + ": " + arena.getPlayer1().getPlayer().getName() + " VS " + arena.getPlayer2().getPlayer().getName());
                                 } else {
-                                    sender.sendMessage(ChatColor.GOLD + arena.name + ": Available");
+                                    sender.sendMessage(ChatColor.GOLD + arena.name + ":" + ChatColor.GREEN + " Available");
                                 }
                             }
                         }
                     } else if (args[0].equalsIgnoreCase("accept")) {
                         if (sender instanceof Player) {
-                            Player player = (Player) sender;
-                            ScavDuelsPlayer dPlayer2 = scavDuelsPlayer.get(player.getName());
+                            Player player2 = (Player) sender;
+                            ScavDuelsPlayer dPlayer2 = scavDuelsPlayer.get(player2.getName());
                             if (dPlayer2 == null) {
 
-                                dPlayer2 = new ScavDuelsPlayer(player);
+                                dPlayer2 = new ScavDuelsPlayer(player2);
                                 sender.sendMessage("No one has sent you an invite. try /duel PlayerName");
-                                scavDuelsPlayer.put(player.getName(), dPlayer2);
+                                scavDuelsPlayer.put(player2.getName(), dPlayer2);
                                 return true;
                             }
                             if (dPlayer2.isDueling) {
@@ -90,7 +100,16 @@ public class ScavDuels extends JavaPlugin {
                                 sender.sendMessage("No one has sent you an invite. try /duel PlayerName");
                                 return true;
                             }
+                            if (player2.getVehicle() != null || player2.isSleeping()) {
+                                sender.sendMessage("You can't accept a duel while riding or sleeping");
+                                return true;
+                            }
                             Player player1 = this.getServer().getPlayer(player1Name);
+                            if (player1.getVehicle() != null || player1.isSleeping()) {
+                                sender.sendMessage("Other player is riding or sleeping. Please try again later");
+                                player1.sendMessage("It seems you are riding or in a bed. So you can't fight " + player2.getName() + " yet.");
+                                return true;
+                            }
                             if (player1 == null || !player1.isOnline()) {
                                 sender.sendMessage("Player is offline");
                                 return true;
@@ -143,6 +162,15 @@ public class ScavDuels extends JavaPlugin {
                             }
                             if (dPlayer2.canLeaveAfterWinning) {
                                 dPlayer2.TeleportBack();
+                                dPlayer2.canLeaveAfterWinning = false;
+                                for (Arena tempArena : ArenaList) {
+                                    System.out.println(dPlayer2.ArenaName);
+                                    if (tempArena.name.equalsIgnoreCase(dPlayer2.ArenaName)) {
+                                        tempArena.player1 = null;
+                                        tempArena.player2 = null;
+                                        break;
+                                    }
+                                }
                                 return true;
                             }
                             if (!dPlayer2.isDueling) {
@@ -175,6 +203,10 @@ public class ScavDuels extends JavaPlugin {
                         Player player2 = this.getServer().getPlayer(playerName);
                         if (player2 != null && player2.isOnline()) {
                             if (sender instanceof Player) {
+                                if (sender.getName().equals(playerName)) {
+                                    sender.sendMessage(ChatColor.RED + "You can't vs yourself...");
+                                    return true;
+                                }
                                 if (args.length < 2) {
                                     sender.sendMessage("Arena name missing. please go /duel player arenaName");
                                     return true;
@@ -226,7 +258,7 @@ public class ScavDuels extends JavaPlugin {
                                 dPlayer1.invitedName = player1.getName();
                                 dPlayer1.invitedTime = System.currentTimeMillis();
                                 dPlayer1.sendMessage("request sent.");
-                                dPlayer2.sendMessage("You have been invited to duel " + dPlayer1.getPlayer().getName() + " go /duel accept " + dPlayer1.getPlayer().getName());
+                                dPlayer2.sendMessage("You have been invited to duel " + dPlayer1.getPlayer().getName() + " at Arena: " + dPlayer1.ArenaName + ". Go /duel accept " + dPlayer1.getPlayer().getName());
 
                             }
                         } else {
@@ -241,6 +273,7 @@ public class ScavDuels extends JavaPlugin {
                 sender.sendMessage(ChatColor.RED + "You don't have permission to run that command.");
                 return true;
             }
+
         } else if (commandName.equalsIgnoreCase("DuelAdmin")) {
 
             if (sender.hasPermission("ScavDuels.command.DuelAdmin")) {
@@ -298,7 +331,40 @@ public class ScavDuels extends JavaPlugin {
                         for (Arena arena : ArenaList) {
                             arena.StopArena();
                         }
+                    } else if (args[0].equalsIgnoreCase("teleport")) {
+                        if (args.length < 3) {
+                            sender.sendMessage("Please use /DuelAdmin teleport ArenaName 1or2");
+                            return true;
+                        }
+
+                        String arenaName = args[1];
+                        Arena arena = null;
+                        for (Arena tempArena : ArenaList) {
+                            if (tempArena.name.equalsIgnoreCase(arenaName)) {
+                                arena = tempArena;
+                                break;
+                            }
+                        }
+                        if (arena == null) {
+                            sender.sendMessage("Arena not created yet");
+                            return true;
+                        } else {
+                            if (sender instanceof Player) {
+                                Player player = (Player) sender;
+                                int playerNumber = Integer.parseInt(args[2]);
+                                arena.teleport(player, playerNumber);
+                            }
+                        }
+                        return true;
                     }
+                } else {
+                    sender.sendMessage("args missing.");
+                    sender.sendMessage("commands are:");
+                    sender.sendMessage("/DuelAdmin create ArenaName");
+                    sender.sendMessage("/DuelAdmin setpos ArenaName 1/2");
+                    sender.sendMessage("/DuelAdmin StopAll");
+                    sender.sendMessage("/DuelAdmin teleport ArenaName 1/2");
+
                 }
                 return true;
             } else {

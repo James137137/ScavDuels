@@ -1,6 +1,6 @@
 name: ScavDuels
 main: nz.co.lolnet.james137137.ScavDuels.ScavDuels
-version: 0.01
+version: 1.00
 authors: [James Anderson]
 commands:
   Duel:
